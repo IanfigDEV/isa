@@ -26,7 +26,7 @@
             justify-content: center;
             align-items: center;
             background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #a1c4fd 100%);
-            overflow: hidden; /* Impede a rolagem da tela */
+            overflow: hidden; 
             position: relative;
         }
 
@@ -56,6 +56,7 @@
         .card {
             background: var(--bg-card);
             backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             padding: 40px 30px;
             border-radius: 24px;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
@@ -144,6 +145,10 @@
             color: #57606f;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
             user-select: none;
+            /* Flex para manter o texto centralizado mesmo quando ele mudar de lugar */
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         /* Opções e WhatsApp */
@@ -227,7 +232,7 @@
             
             <div class="buttons-container" id="buttons-container">
                 <button class="btn-yes" onclick="nextStep(2)">💙 CLARO! 😍</button>
-                <!-- O Botão NÃO puro e simples -->
+                <!-- O Botão NÃO -->
                 <button class="btn-no" id="btn-no">Não 🤨</button>
             </div>
         </div>
@@ -251,7 +256,8 @@
             <h1>Fechado! ❤️</h1>
             <p>Agora me chama no WhatsApp pra gente combinar os detalhes 😏</p>
             
-            <a href="https://wa.me/+5511969016799?text=Oi!%20Eu%20aceito%20o%20convite%20e%20já%20escolhi%20o%20que%20vamos%20fazer!%20🥰" target="_blank" class="btn-whatsapp">
+            <!-- COLOQUE SEU NÚMERO AQUI (55 + DDD + NÚMERO) -->
+            <a href="https://wa.me/5511999999999?text=Oi!%20Eu%20aceito%20o%20convite%20e%20já%20escolhi%20o%20que%20vamos%20fazer!%20🥰" target="_blank" class="btn-whatsapp">
                 💬 Falar comigo
             </a>
         </div>
@@ -277,56 +283,63 @@
         createParticles();
 
         // -----------------------------------------------------
-        // LÓGICA DO BOTÃO "NÃO" (Apenas foge, dentro da tela)
+        // LÓGICA DO BOTÃO "NÃO" (Agora 100% à prova de celular)
         // -----------------------------------------------------
         const btnNo = document.getElementById('btn-no');
 
         function dodgeButton(e) {
-            // Evita o clique/toque de funcionar
-            if(e.cancelable) e.preventDefault(); 
+            // Evita o toque na tela registrar como clique real e bugar
+            if(e && e.cancelable) e.preventDefault(); 
             
-            // Muda para position fixed para mover livremente sobre toda a tela
-            btnNo.style.position = 'fixed';
-            btnNo.style.zIndex = '9999';
+            // SEGUNDO DE MAGIA: Tira o botão do card e põe no body 
+            // Assim ele ignora os filtros de CSS que jogavam ele pra fora da tela no celular
+            if (btnNo.parentNode !== document.body) {
+                // Guarda o tamanho real dele antes de soltar
+                const rect = btnNo.getBoundingClientRect();
+                btnNo.style.width = rect.width + 'px';
+                btnNo.style.height = rect.height + 'px';
+                
+                document.body.appendChild(btnNo);
+                btnNo.style.position = 'fixed';
+                btnNo.style.zIndex = '9999';
+            }
 
-            // Pega o tamanho exato da tela atual e o tamanho do botão
+            // Pega o tamanho livre da tela
             const windowWidth = window.innerWidth;
             const windowHeight = window.innerHeight;
             const buttonWidth = btnNo.offsetWidth;
             const buttonHeight = btnNo.offsetHeight;
 
-            // Define uma margem de segurança (20px) para garantir que ele NUNCA passe da borda
+            // Define limite máximo (-20px das bordas pra ter folga)
             const maxX = windowWidth - buttonWidth - 20;
             const maxY = windowHeight - buttonHeight - 20;
             
-            // Escolhe posições X e Y aleatórias, mas sempre no mínimo 20px e no máximo o limite seguro
+            // Escolhe nova posição
             const randomX = Math.max(20, Math.floor(Math.random() * maxX));
             const randomY = Math.max(20, Math.floor(Math.random() * maxY));
             
-            // Aplica a nova posição com uma transição suave
+            // Aplica a nova posição com transição
             btnNo.style.transition = 'left 0.15s ease-out, top 0.15s ease-out';
             btnNo.style.left = randomX + 'px';
             btnNo.style.top = randomY + 'px';
         }
 
-        // Gatilhos para ele fugir (mouse ou dedo no celular)
+        // Os 3 jeitos de tentar clicar (mouse, dedo, clique forçado)
         btnNo.addEventListener('mouseover', dodgeButton);
         btnNo.addEventListener('touchstart', dodgeButton, { passive: false });
         btnNo.addEventListener('click', dodgeButton); 
         // -----------------------------------------------------
 
-        // Função para avançar as telas
         function nextStep(stepNumber) {
             document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
             document.getElementById('step-' + stepNumber).classList.add('active');
             
             if(stepNumber === 2) {
                 shootConfetti();
-                btnNo.style.display = 'none'; // Some com o botão Não quando ela aceitar
+                btnNo.style.display = 'none'; // Some de vez com ele após ela dizer sim!
             }
         }
 
-        // Função de Confetes ao aceitar
         function shootConfetti() {
             const colors = ['#ff7eb3', '#4facfe', '#f2d74e', '#ffffff', '#ff758c'];
             for(let i = 0; i < 60; i++) {
